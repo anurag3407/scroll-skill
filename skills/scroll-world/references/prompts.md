@@ -15,10 +15,10 @@ Collect and write down:
 - `SECTIONS[]` — ordered list; for each: `id`, `label`, `subject` (what's in the diorama), `eyebrow`, `title`, `body` (≤ 1 sentence), `tags[]` (0–3). Last section = hero product + CTA.
 - `MOBILE` — yes/no. **Always asked** (SKILL Step 1.5), presented to the user
   with the ~2× credit cost stated.
-- `VIDEO_TIER` — draft (`seedance_2_0_mini`) | standard (`seedance_2_0`, default) |
+- `VIDEO_TIER` — draft (`omni_mini`) | standard (`omni`, default) |
   alternate (`kling3_0`). Chosen by cost at SKILL Step 1.6, with the calibrated
   total estimate stated before anything renders.
-- `STILLS_SOURCE` — higgsfield (`gpt_image_2`, spends credits) | codex
+- `STILLS_SOURCE` — agy (`nano_banana_pro`, spends credits) | codex
   (`image_gen`, subscription-billed; only offer when the Codex CLI is present). Yes = the **native 9:16 portrait chain** (pipeline §6b):
   portrait renders of every dive/connector + `clipMobile`/`connectorsMobile`/`stillMobile`
   wiring + the full mobile QA. The §6 crop encodes are a no-credits stopgap only.
@@ -40,7 +40,7 @@ Alternate directions (swap the first two sentences, keep the palette/no-text tai
 - **Glossy toy:** "Isometric glossy vinyl-toy diorama, smooth plastic shading, soft rim light, collectible figurine look."
 - **Claymation:** "Isometric stop-motion clay set, visible thumbprints, handmade plasticine texture, soft studio softbox light."
 - **Neon night:** "Isometric miniature at night, warm interior glow and neon signage, moody rim light, wet reflective ground."
-- **Photoreal architectural** (real estate, hospitality, premium/luxury): "Ultra-photorealistic architectural photography of a single cohesive [subject], cinematic wide-angle, warm golden-hour light, natural materials, restrained designer furnishings, a breathtaking view, editorial magazine quality (Architectural Digest), shallow depth of field, no people." For photoreal, drop the floating-island framing and the knockout (Step 3) — the scenes are **full-bleed** (a dark page background reads premium), the "dive" glides *through doorways/glass* rather than opening a roof, and cohesion comes entirely from the identical preamble (do NOT pass an `--image` reference — it clones the same room). Interiors trip Seedance's NSFW filter often; see SKILL Gotchas.
+- **Photoreal architectural** (real estate, hospitality, premium/luxury): "Ultra-photorealistic architectural photography of a single cohesive [subject], cinematic wide-angle, warm golden-hour light, natural materials, restrained designer furnishings, a breathtaking view, editorial magazine quality (Architectural Digest), shallow depth of field, no people." For photoreal, drop the floating-island framing and the knockout (Step 3) — the scenes are **full-bleed** (a dark page background reads premium), the "dive" glides *through doorways/glass* rather than opening a roof, and cohesion comes entirely from the identical preamble (do NOT pass an `--image` reference — it clones the same room). Interiors trip Omni's NSFW filter often; see SKILL Gotchas.
 
 ## Scene still prompt (Step 2)
 
@@ -114,7 +114,7 @@ subtle parallax. No text, no captions.
 For scenes with no building to open (a field, a plaza, a road), replace the roof clause
 with "the camera flies low across [the scene] toward [focal point]."
 
-Params by chain model (SKILL Step 4 table): seedance —
+Params by chain model (SKILL Step 4 table): omni —
 `--mode std --resolution 1080p --aspect_ratio 16:9 --duration 8`, no audio flag;
 kling3_0 — `--mode std --sound off --aspect_ratio 16:9 --duration 10` (no `--resolution`
 param). Same for architecture-A legs.
@@ -136,7 +136,7 @@ For the last connector into a hero-product finale: "…glides forward and the wo
 dissolves toward a single giant [PRODUCT] floating in soft [BG] space, arriving in front
 of it."
 
-seedance: `--mode std --resolution 1080p --aspect_ratio 16:9 --duration 5`; kling3_0:
+omni: `--mode std --resolution 1080p --aspect_ratio 16:9 --duration 5`; kling3_0:
 `--mode std --sound off --aspect_ratio 16:9 --duration 5`. Connectors need `--end-image`
 → use a roster model that accepts it (Step 4).
 

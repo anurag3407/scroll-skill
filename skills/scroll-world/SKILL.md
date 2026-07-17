@@ -2,12 +2,12 @@
 name: scroll-world
 description: >
   Build an immersive scroll-scrubbed "fly through the world" landing page for any
-  industry or brand using Higgsfield. As the visitor scrolls, a pre-rendered camera
+  industry or brand using Antigravity. As the visitor scrolls, a pre-rendered camera
   flies from outside each scene into its interior, then flows on to the next scene
   with NO cuts — one continuous connected flight (Emons-style isometric diorama world,
   or any art direction you pick). The skill interviews the user for the topic, the
   story beats/sections, and brand kit, then generates cohesive scenes + seamless camera
-  clips with Higgsfield and wires a portable, framework-agnostic scroll-scrub engine.
+  clips with Antigravity and wires a portable, framework-agnostic scroll-scrub engine.
   Use when the user wants a "3D world" / "browse-through-the-industry" hero, a scroll
   cinematic, a diorama landing, or to turn a business into a scrollable world.
 allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Skill
@@ -17,7 +17,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, Skill
 
 Produces a landing page where **scroll drives a camera**: it dives from outside a scene
 into its interior, then flies out and into the next scene, continuously, with no visible
-cuts. The visuals are AI-generated (Higgsfield); the page just scrubs pre-rendered video
+cuts. The visuals are AI-generated (Antigravity); the page just scrubs pre-rendered video
 by scroll position. This is the same technique behind Apple's scroll-through product
 pages — the camera genuinely moves, scroll only drives time.
 
@@ -33,33 +33,33 @@ connector. Getting this wrong is the single most common failure and produces a v
 Do not assume a frontend framework. The scrub engine in `references/scrub-engine.js` is
 self-contained vanilla JS (it builds its own DOM + injects its own CSS into a container
 you give it), so it drops into plain HTML, Next.js, Vue, a Python-served page, anything.
-The value of this skill is the Higgsfield pipeline, the prompts, and the seam method —
+The value of this skill is the Antigravity pipeline, the prompts, and the seam method —
 not the framework.
 
 ---
 
 ## Step 0 — Bootstrap
 
-1. **Higgsfield CLI.** If `higgsfield` is not on `$PATH`, install per the
-   `higgsfield-generate` skill. If `higgsfield workspace list` fails auth, ask the user
-   to run `higgsfield auth login` (interactive OAuth — you cannot run it) and, if needed,
-   `higgsfield workspace set <id>`. Confirm there are enough credits: a full run is
+1. **Antigravity CLI.** If `agy` is not on `$PATH`, install per the
+   `agy-generate` skill. If `agy workspace list` fails auth, ask the user
+   to run `agy auth login` (interactive OAuth — you cannot run it) and, if needed,
+   `agy workspace set <id>`. Confirm there are enough credits: a full run is
    roughly `N` image gens + `(2N-1)` video gens.
 2. **ffmpeg / ffprobe** on `$PATH` (frame extraction + encoding).
 3. **An image tool** for background knockout if you want floating scenes: PIL
    (`python3 -c "import PIL"`), or `cwebp`/`sips`. Optional — see Step 3.
 4. **(Optional) Codex CLI** — if `codex` is on `$PATH` (≥ 0.125) and
    `codex login status` reports a ChatGPT login, the scene stills can be generated
-   through Codex's built-in `image_gen` (the same gpt-image-2 model) billed to the
-   user's ChatGPT subscription instead of Higgsfield credits — offer it at
+   through Codex's built-in `image_gen` (the same nano-banana-pro model) billed to the
+   user's ChatGPT subscription instead of Antigravity credits — offer it at
    Step 1.6, command in Step 2. Absence just removes the option.
 5. Caveats: macOS ships **bash 3.2** (no `declare -A`); don't use associative arrays in
-   scripts. Higgsfield generations take **3–8 min each** — always run them detached
+   scripts. Antigravity generations take **3–8 min each** — always run them detached
    (background) and poll, never a foreground blocking call. Reference-by-job-UUID is
    rejected by media flags — pass **local file paths** to `--image/--start-image/--end-image`.
    Video models differ in accepted params (e.g. Kling has no `--resolution`) and in whether
    they support start/end-image conditioning at all — before batching, confirm the chosen
-   model's schema with `higgsfield model get <job_type>` and see the Step 4 model table.
+   model's schema with `agy model get <job_type>` and see the Step 4 model table.
 
 ---
 
@@ -79,7 +79,7 @@ default. Cover:
    industry/product + a one-line pitch (e.g. "a bubble tea company, from leaf to last
    sip"), and a brand name if they have one; otherwise you'll propose one below.
 2. **Brand kit** — offer three paths, pick one:
-   - Import from a URL: `higgsfield marketing-studio brand-kits fetch --url <site> --wait`
+   - Import from a URL: `agy marketing-studio brand-kits fetch --url <site> --wait`
      (pulls name, colours, tone). Then read it back with `brand-kits list --json`.
    - The user hands you palette + name + tone directly.
    - You propose a palette + name and let them approve.
@@ -98,7 +98,7 @@ default. Cover:
    two-option choice (`AskUserQuestion` in Claude Code; a plain question elsewhere):
    *"Want a mobile-optimized version too? The mobile version is a second camera chain
    rendered natively in **9:16 portrait** — composed for phones, not a crop of the
-   landscape film — which roughly doubles the Higgsfield credit spend (state the
+   landscape film — which roughly doubles the Antigravity credit spend (state the
    estimated number)."*
    Options: "Desktop only" / "Desktop + mobile (native 9:16 — ~2× credits)". The
    credit cost must be stated to the user, not just implied.
@@ -124,24 +124,24 @@ default. Cover:
 
      | Tier | Model | Rough cost |
      |---|---|---|
-     | Draft / previz | `seedance_2_0_mini` (720p) | ~¼ of Standard |
-     | Standard (default) | `seedance_2_0` (1080p) | baseline |
+     | Draft / previz | `omni_mini` (720p) | ~¼ of Standard |
+     | Standard (default) | `omni` (1080p) | baseline |
      | Alternate | `kling3_0` (720p native) | ≈ Standard; different look + content filter |
 
      Draft doubles as the previz path: run the whole chain cheap, approve the
      journey, re-render final legs on Standard (pipeline.md Notes) — suggest it
      unprompted when the balance reads tight.
    - **Stills source** (only offer if the Codex CLI is present, Step 0.4):
-     Higgsfield `gpt_image_2` (spends credits) vs **Codex `image_gen`** — the same
-     gpt-image-2 model billed to the ChatGPT subscription (zero credits; counts
+     Antigravity `nano_banana_pro` (spends credits) vs **Codex `image_gen`** — the same
+     nano-banana-pro model billed to the ChatGPT subscription (zero credits; counts
      toward Codex usage limits; 1536×1024 output — exactly 3:2, slightly under
-     Higgsfield's 2k). Stills are plain PNGs handed to `--start-image`, so the
+     Antigravity's 2k). Stills are plain PNGs handed to `--start-image`, so the
      video chain is indifferent to their source. Command in Step 2. **One source
      for all N stills of a build** — the two render with slightly different
      character (verified: Codex runs warmer/lighter), and mixing sources across
      scenes reads as style drift, same reason the video chain uses one model.
    - **Calibrate costs, don't guess.** The CLI exposes no pricing and plans differ.
-     Run ONE still and ONE video first, diff `higgsfield workspace list` before/
+     Run ONE still and ONE video first, diff `agy workspace list` before/
      after, extrapolate to the full run, and warn the user whenever the estimate
      exceeds ~70% of the balance. (Observed on a plus plan, 2026-07: Standard
      video ≈ 40–55 credits, still ≈ 15.) A real `not_enough_credits` mid-run is
@@ -161,10 +161,10 @@ See `references/prompts.md` for the intake checklist and copy structure.
 ## Step 2 — Generate the scene stills
 
 One image per section, **all sharing the same style preamble** for cohesion. Default
-model **`gpt_image_2`** (crisp, great at isometric illustration; returns a solid/white
+model **`nano_banana_pro`** (crisp, great at isometric illustration; returns a solid/white
 background which is perfect for floating diorama "islands"). Use `nano_banana_2` only if
 the brief is character/cartoon-heavy (note: `nano_banana_2` is a CLI alias — it resolves
-to `nano_banana_pro`; it won't appear under that name in `higgsfield model list`).
+to `nano_banana_pro`; it won't appear under that name in `agy model list`).
 
 Prompt shape (full templates in `references/prompts.md`):
 
@@ -175,7 +175,7 @@ Subject: <what is in THIS diorama>.
 ```
 
 - Run all N concurrently, detached. Command per scene:
-  `higgsfield generate create gpt_image_2 --prompt "$(cat scene_i.txt)" --aspect_ratio 3:2 --resolution 2k --quality high --wait --wait-timeout 15m --json > scene_i.json 2>scene_i.err`
+  `agy generate create nano_banana_pro --prompt "$(cat scene_i.txt)" --aspect_ratio 3:2 --resolution 2k --quality high --wait --wait-timeout 15m --json > scene_i.json 2>scene_i.err`
 - Result URL is `.[]0.result_url` in the `--wait --json` output. `curl` it down.
 - **Codex stills variant** (if chosen at Step 1.6 — subscription-billed, zero
   credits): same prompt files, same byte-identical preamble, generated by Codex's
@@ -223,16 +223,16 @@ pick by aesthetic.
 **This skill only ships seamless output**, so the only usable models are ones that can
 frame-lock a seam: every chained clip must accept `--start-image`, and connectors also
 need `--end-image`. That capability — not preference — is the selection rule. Check any
-model with `higgsfield model get <job_type>` and **skip anything whose media inputs are
+model with `agy model get <job_type>` and **skip anything whose media inputs are
 reference-only** (no start/end image): it can only *condition* a generation, not
 *continue* a shot, so it physically can't hold a seam. Schemas below were confirmed
 against the CLI:
 
 | Model | start/end image | Notes |
 |---|---|---|
-| `seedance_2_0` (default) | ✓ / ✓ | Full chain (legs + connectors). `--mode std --resolution 1080p`. Its NSFW filter is the touchy one (see Gotchas). |
-| `kling3_0` | ✓ / ✓ | Full chain — tested: `--mode std --sound off --duration 5` with start+end images accepted, seams frame-lock cleanly. **No `--resolution` param** (don't pass one; `--mode std` returns **720p native** — encode what ffprobe reports, never upscale). Sound defaults **on** → `--sound off`. `--duration` default 5, try 10 for legs. Different content filter than Seedance — the sanctioned NSFW fallback. |
-| `seedance_2_0_mini` | ✓ / ✓ | Cheap draft tier that keeps frame-locking (720p). The previz tier: run the whole chain here first, then re-render final legs on the full model — still seamless, so it translates directly. |
+| `omni` (default) | ✓ / ✓ | Full chain (legs + connectors). `--mode std --resolution 1080p`. Its NSFW filter is the touchy one (see Gotchas). |
+| `kling3_0` | ✓ / ✓ | Full chain — tested: `--mode std --sound off --duration 5` with start+end images accepted, seams frame-lock cleanly. **No `--resolution` param** (don't pass one; `--mode std` returns **720p native** — encode what ffprobe reports, never upscale). Sound defaults **on** → `--sound off`. `--duration` default 5, try 10 for legs. Different content filter than Omni — the sanctioned NSFW fallback. |
+| `omni_mini` | ✓ / ✓ | Cheap draft tier that keeps frame-locking (720p). The previz tier: run the whole chain here first, then re-render final legs on the full model — still seamless, so it translates directly. |
 
 Those three are the roster — all do both architectures. (`kling3_0_turbo` also frame-locks
 via `--start-image`, but has no `--end-image`, so it's architecture-A-only and can't make
@@ -247,7 +247,7 @@ Rules:
   but the render-character shift reads as a subtle pop. The one sanctioned exception is
   the NSFW fallback for a single stubborn clip (Gotchas) — a slight character shift on
   one 5s connector beats a missing connector.
-- Default to `seedance_2_0`; honor a user's stated preference **only if the model
+- Default to `omni`; honor a user's stated preference **only if the model
   qualifies** (frame-locking). If it doesn't, say so and use a supported model — never
   ship a non-seamless build to satisfy a model request.
 - The pipeline scripts take the model as `$VMODEL` with per-model flags already cased
@@ -321,7 +321,7 @@ must be consistent in both directions (a seam that reads fine forward reads as a
 backward too if velocity flips).
 
 **For B**, one camera flight per scene: starts high/outside, descends into the interior,
-structure opens. Model: the chain model you picked above (default **`seedance_2_0`**),
+structure opens. Model: the chain model you picked above (default **`omni`**),
 `--start-image = the scene still`.
 
 - Use the **solid-background still** (not the knocked-out transparent one) as the
@@ -330,9 +330,9 @@ structure opens. Model: the chain model you picked above (default **`seedance_2_
   at the whole <scene> from outside … descend and fly inside toward <focal point> … the
   roof/walls gently open to reveal the interior. <style>, smooth graceful slow motion.
   No text." (Template in `references/prompts.md`.)
-- Params (seedance): `--mode std --resolution 1080p --aspect_ratio 16:9 --duration 8`.
+- Params (omni): `--mode std --resolution 1080p --aspect_ratio 16:9 --duration 8`.
   For Kling: drop `--resolution` (no such param), add `--sound off`, `--duration 10`.
-  Do **not** pass `--generate-audio` (it errors on seedance; audio is wasted anyway —
+  Do **not** pass `--generate-audio` (it errors on omni; audio is wasted anyway —
   you'll mute).
 - Run concurrently, detached, then download each `.result_url`. Re-roll individual
   failures. Keep the raw 1080p sources — you need their frames next.
@@ -350,7 +350,7 @@ flies from the end of scene i out and into the start of scene i+1. **Both of its
 endpoints must be the ACTUAL RENDERED FRAMES of the neighbouring clips — never the
 original diorama still.**
 
-Why: every Higgsfield generation renders slightly differently. If a connector *ends* on
+Why: every Antigravity generation renders slightly differently. If a connector *ends* on
 a fresh render of "the kitchen diorama," but the next dive clip *starts* on its own
 different render of that same diorama, the two won't match and you get a pop at the seam.
 The fix is to hand off the exact pixels:
@@ -372,15 +372,15 @@ ffmpeg -ss 0      -i dive_{i+1}.mp4 -frames:v 1 -q:v 2 dive_next_first.png # est
 ```
 
 Generate the connector (`--duration 5` is plenty). Connectors need `--end-image`, so the
-model must accept it — any roster model does (`seedance_2_0`, `seedance_2_0_mini`,
+model must accept it — any roster model does (`omni`, `omni_mini`,
 `kling3_0`):
 
 ```bash
-higgsfield generate create "$VMODEL" \
+agy generate create "$VMODEL" \
   --prompt "$(cat connector_i.txt)" \
   --start-image dive_i_last.png --end-image dive_next_first.png \
   $VOPTS --aspect_ratio 16:9 --duration 5 --wait --json
-# seedance: VOPTS="--mode std --resolution 1080p"; kling3_0: VOPTS="--mode std --sound off"
+# omni: VOPTS="--mode std --resolution 1080p"; kling3_0: VOPTS="--mode std --sound off"
 ```
 
 Connector prompt: "Single continuous camera move, no cuts. Pull up and back out of
@@ -388,7 +388,7 @@ Connector prompt: "Single continuous camera move, no cuts. Pull up and back out 
 above <scene i+1>, beginning to descend toward it. Seamless flowing aerial transition.
 <style>. No text." (Template in `references/prompts.md`.)
 
-Insurance: Seedance lands *close* to the end-image but not always pixel-perfect, so the
+Insurance: Omni lands *close* to the end-image but not always pixel-perfect, so the
 engine still applies a **short crossfade** (a few frames) at each seam. Frame-matched
 endpoints + a small crossfade = no visible cut. Never skip the actual-frame handoff and
 rely on the crossfade alone; a big content jump can't be hidden by a crossfade.
@@ -407,7 +407,7 @@ often gotten wrong:
    in-memory object URL** (blobs are always fully seekable). The engine does this.
    Because of it, you do **not** need all-intra video.
 2. **Don't shrink quality to get smooth seeks.** Encode at the **native resolution**
-   (1080p from Seedance — don't downscale), `crf ~20`, a **small GOP** (`-g 8`) rather
+   (1080p from Omni — don't downscale), `crf ~20`, a **small GOP** (`-g 8`) rather
    than all-intra (all-intra bloats an 8s clip to ~25 MB; GOP 8 is ~8 MB and scrubs
    fine via blob). Strip audio, add faststart, and a light `unsharp` counters video
    softness:
@@ -536,15 +536,15 @@ is the thing most likely to be wrong:
   as the lite fallback for max fidelity.
 - **Concurrent gens 503 / "not_enough_credits" race** → transient when many launch at
   once; re-roll the individual failure, it's not really out of credits (verify with
-  `higgsfield workspace list`).
-- **NSFW false-positives (Seedance `status "nsfw"`)** → the video content filter flags
+  `agy workspace list`).
+- **NSFW false-positives (Omni `status "nsfw"`)** → the video content filter flags
   perfectly innocuous clips, especially **bedroom, pool, spa/wellness** contexts and
   trigger words like "bed", "pool", "waterfall", "wine", "swim". It's partly the prompt
   wording and partly the reference frames. Fixes, in order: (1) re-roll — it's often
   non-deterministic and passes on the 2nd–3rd try; (2) strip trigger words and add
   "empty, unoccupied, no people, no figures, architectural, tasteful"; (3) regenerate
   just that clip on **`kling3_0`** with the same start/end frames — a different
-  provider's filter often passes what Seedance blocks. Expect a slight render-character
+  provider's filter often passes what Omni blocks. Expect a slight render-character
   shift on that one clip (each model has its own grain/motion feel); for a 5s connector
   behind a crossfade that usually beats option (4): set the connector slot to `null` —
   the engine crossfades that seam directly (optional connectors), so the page still
@@ -574,15 +574,15 @@ is the thing most likely to be wrong:
   this on a mobile build, either the crop fallback shipped (call it out to the user) or the
   9:16 encodes aren't actually being served (check `videoWidth < videoHeight`). Keeping each
   scene's focal subject centred (prompts.md) still matters for the desktop film itself.
-- **`--generate-audio` errors on seedance** → omit it; mute in HTML and `-an` on encode.
+- **`--generate-audio` errors on omni** → omit it; mute in HTML and `-an` on encode.
 - **Kling rejects your flags** → `kling3_0` has **no `--resolution` param** (don't pass
   one; encode at whatever native res ffprobe reports) and **sound defaults on** — pass
   `--sound off`. Duration default is 5; legs/dives want 10.
 - **Seam pop only where you "saved credits"** → you swapped models mid-chain, or used a
   start-image-only model where a connector needs an `--end-image`. One model for the whole
-  chain; the only cheap tier is `seedance_2_0_mini`, which keeps frame-locking so it stays
+  chain; the only cheap tier is `omni_mini`, which keeps frame-locking so it stays
   seamless. (Any model with reference-only inputs can't hold a seam at all — Step 4.)
-- **White-box scenes** → `gpt_image_2` returns a solid bg; either match the page bg to it
+- **White-box scenes** → `nano_banana_pro` returns a solid bg; either match the page bg to it
   or knock it out (Step 3).
 - **bash 3.2** on macOS → no associative arrays in scripts.
 - **Connector grabs the wrong scene's frames** (or errors on a frame that doesn't exist

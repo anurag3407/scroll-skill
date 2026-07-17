@@ -9,18 +9,18 @@ mkdir -p "$WORK" "$ASSETS/vid"
 NAMES="farm kitchen shop delivery plaza finale"   # <-- your section ids, in order
 
 # Chain video model — ONE for every chained clip (SKILL Step 4 roster).
-# Must accept --start-image AND --end-image (verify: higgsfield model get <model>):
-# seedance_2_0 | kling3_0 | seedance_2_0_mini (draft tier). Reference-only models can't
+# Must accept --start-image AND --end-image (verify: agy model get <model>):
+# omni | kling3_0 | omni_mini (draft tier). Reference-only models can't
 # hold a seam; models without --mode (e.g. kling3_0_turbo) need their own flag branch below.
-VMODEL=seedance_2_0
+VMODEL=omni
 case "$VMODEL" in                                  # per-model flags + durations (bash 3.2 safe)
   kling3_0)          VOPTS="--mode std --sound off";          DIVE_DUR=10; CONN_DUR=5 ;;  # no --resolution param on Kling
-  seedance_2_0_mini) VOPTS="--mode std --resolution 720p";    DIVE_DUR=8;  CONN_DUR=5 ;;  # cheap frame-locked previz
-  *)                 VOPTS="--mode std --resolution 1080p";   DIVE_DUR=8;  CONN_DUR=5 ;;  # seedance_2_0 default
+  omni_mini) VOPTS="--mode std --resolution 720p";    DIVE_DUR=8;  CONN_DUR=5 ;;  # cheap frame-locked previz
+  *)                 VOPTS="--mode std --resolution 1080p";   DIVE_DUR=8;  CONN_DUR=5 ;;  # omni default
 esac
 ```
 
-Higgsfield generations take minutes — every `higgsfield ... --wait` call below is meant
+Antigravity generations take minutes — every `agy ... --wait` call below is meant
 to run inside a **backgrounded** script. Launch the whole script with your tool's
 background/detached mode and poll the progress log; never block the foreground.
 
@@ -30,7 +30,7 @@ Write one prompt file per section to `$WORK/still_<name>.txt` (see prompts.md), 
 
 ```bash
 gen_still() { # name
-  higgsfield generate create gpt_image_2 --prompt "$(cat "$WORK/still_$1.txt")" \
+  agy generate create nano_banana_pro --prompt "$(cat "$WORK/still_$1.txt")" \
     --aspect_ratio 3:2 --resolution 2k --quality high --wait --wait-timeout 15m --json \
     > "$WORK/still_$1.json" 2> "$WORK/still_$1.err"
   url=$(jq -r '.[0].result_url // empty' "$WORK/still_$1.json")
@@ -66,7 +66,7 @@ Prompt files at `$WORK/dive_<name>.txt`. Start image = the solid-bg still PNG.
 
 ```bash
 gen_dive() { # name                       ($VOPTS is unquoted on purpose — word-split flags)
-  higgsfield generate create "$VMODEL" --prompt "$(cat "$WORK/dive_$1.txt")" \
+  agy generate create "$VMODEL" --prompt "$(cat "$WORK/dive_$1.txt")" \
     --start-image "$WORK/still_$1.png" \
     $VOPTS --aspect_ratio 16:9 --duration "$DIVE_DUR" \
     --wait --wait-timeout 20m --json > "$WORK/dive_$1.json" 2> "$WORK/dive_$1.err"
@@ -98,8 +98,8 @@ done
 Prompt files at `$WORK/conn_<i>.txt` (i = 1..N-1). Iterate adjacent pairs:
 
 ```bash
-gen_conn() { # i startPng endPng          (end-image required → seedance/kling3_0 only)
-  higgsfield generate create "$VMODEL" --prompt "$(cat "$WORK/conn_$1.txt")" \
+gen_conn() { # i startPng endPng          (end-image required → omni/kling3_0 only)
+  agy generate create "$VMODEL" --prompt "$(cat "$WORK/conn_$1.txt")" \
     --start-image "$2" --end-image "$3" \
     $VOPTS --aspect_ratio 16:9 --duration "$CONN_DUR" \
     --wait --wait-timeout 20m --json > "$WORK/conn_$1.json" 2> "$WORK/conn_$1.err"
@@ -115,7 +115,7 @@ done ; wait
 
 ## 5. Encode everything for scrubbing (Step 6)
 
-Native resolution (1080p from seedance std; kling3_0 std returned **720p** in testing —
+Native resolution (1080p from omni std; kling3_0 std returned **720p** in testing —
 never upscale, encode what ffprobe reports), crf 20, GOP 8, light sharpen, no audio,
 faststart. Same for dives + connectors.
 
@@ -198,16 +198,16 @@ Step 1.5 interview.
 
 - `.[0].result_url` is the field on the `--wait --json` job object. `.min_result_url` is
   a lower-res preview if you ever want it.
-- **NSFW fallback across models**: if one clip keeps getting flagged on seedance after
+- **NSFW fallback across models**: if one clip keeps getting flagged on omni after
   re-rolls + prompt scrubbing, regenerate just that clip on `kling3_0` with the SAME
   start/end frames: `VMODEL=kling3_0; VOPTS="--mode std --sound off"; gen_conn 3 …` —
   then restore your chain model. See SKILL Gotchas for the trade-off.
-- **Previz on the cheap**: run the whole chain once with `VMODEL=seedance_2_0_mini`
+- **Previz on the cheap**: run the whole chain once with `VMODEL=omni_mini`
   (frame-locking intact, ~720p) to validate the journey and seams before spending
   full-model credits — because it's still seamless, the previz translates directly to the
   final render. Don't reach for reference-only models here: without `--start/--end-image`
   they can't hold a seam, so their output can't be chained (Step 4 rule).
-- If a whole batch stalls, check `higgsfield workspace list` for credits and
+- If a whole batch stalls, check `agy workspace list` for credits and
   `$WORK/*.err` for the reason.
 - Concurrency: launching ~5–6 gens at once is fine; much more can trigger transient
   credit/race errors — stagger or re-roll.
