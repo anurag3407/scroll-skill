@@ -9,20 +9,16 @@ mkdir -p "$WORK" "$ASSETS/vid"
 NAMES="farm kitchen shop delivery plaza finale"   # <-- your section ids, in order
 
 # Chain video model — ONE for every chained clip (SKILL Step 4 roster).
-# Must accept --start-image AND --end-image (verify: agy model get <model>):
-# omni | kling3_0 | omni_mini (draft tier). Reference-only models can't
-# hold a seam; models without --mode (e.g. kling3_0_turbo) need their own flag branch below.
+# Must accept --start-image AND --end-image:
+# omni | omni_mini (draft tier). Reference-only models can't hold a seam.
 VMODEL=omni
-case "$VMODEL" in                                  # per-model flags + durations (bash 3.2 safe)
-  kling3_0)          VOPTS="--mode std --sound off";          DIVE_DUR=10; CONN_DUR=5 ;;  # no --resolution param on Kling
-  omni_mini) VOPTS="--mode std --resolution 720p";    DIVE_DUR=8;  CONN_DUR=5 ;;  # cheap frame-locked previz
-  *)                 VOPTS="--mode std --resolution 1080p";   DIVE_DUR=8;  CONN_DUR=5 ;;  # omni default
+case "$VMODEL" in
+  omni_mini) DIVE_DUR=8;  CONN_DUR=5 ;;  # cheap frame-locked previz
+  *)         DIVE_DUR=8;  CONN_DUR=5 ;;  # omni default
 esac
 ```
 
-Antigravity generations take minutes — every `agy ... --wait` call below is meant
-to run inside a **backgrounded** script. Launch the whole script with your tool's
-background/detached mode and poll the progress log; never block the foreground.
+Antigravity agent generations may take a few minutes — run these batches detached.
 
 ## 1. Scene stills (Step 2)
 
@@ -30,11 +26,9 @@ Write one prompt file per section to `$WORK/still_<name>.txt` (see prompts.md), 
 
 ```bash
 gen_still() { # name
-  agy generate create nano_banana_pro --prompt "$(cat "$WORK/still_$1.txt")" \
-    --aspect_ratio 3:2 --resolution 2k --quality high --wait --wait-timeout 15m --json \
-    > "$WORK/still_$1.json" 2> "$WORK/still_$1.err"
-  url=$(jq -r '.[0].result_url // empty' "$WORK/still_$1.json")
-  [ -n "$url" ] && curl -fsSL "$url" -o "$WORK/still_$1.png" && echo "still $1 ok" || echo "still $1 FAIL"
+  agy --print "Use the image generation tool to generate: $(cat "$WORK/still_$1.txt"). Save it as $WORK/still_$1.png. Do not do anything else." \
+    > "$WORK/still_$1.log" 2>&1
+  [ -f "$WORK/still_$1.png" ] && echo "still $1 ok" || echo "still $1 FAIL (see .log)"
 }
 for n in $NAMES; do gen_still "$n" & done ; wait
 ```
@@ -65,13 +59,12 @@ add `--image "$WORK/still_<good>.png"` to lock style).
 Prompt files at `$WORK/dive_<name>.txt`. Start image = the solid-bg still PNG.
 
 ```bash
-gen_dive() { # name                       ($VOPTS is unquoted on purpose — word-split flags)
-  agy generate create "$VMODEL" --prompt "$(cat "$WORK/dive_$1.txt")" \
+gen_dive() { # name
+  python3 ./references/omni_video.py --prompt "$(cat "$WORK/dive_$1.txt")" \
     --start-image "$WORK/still_$1.png" \
-    $VOPTS --aspect_ratio 16:9 --duration "$DIVE_DUR" \
-    --wait --wait-timeout 20m --json > "$WORK/dive_$1.json" 2> "$WORK/dive_$1.err"
-  url=$(jq -r '.[0].result_url // empty' "$WORK/dive_$1.json")
-  [ -n "$url" ] && curl -fsSL "$url" -o "$WORK/dive_$1.mp4" && echo "dive $1 ok" || echo "dive $1 FAIL"
+    --duration "$DIVE_DUR" \
+    --output "$WORK/dive_$1.mp4" > "$WORK/dive_$1.log" 2>&1
+  [ -f "$WORK/dive_$1.mp4" ] && echo "dive $1 ok" || echo "dive $1 FAIL"
 }
 for n in $NAMES; do gen_dive "$n" & done ; wait
 ```
@@ -98,13 +91,12 @@ done
 Prompt files at `$WORK/conn_<i>.txt` (i = 1..N-1). Iterate adjacent pairs:
 
 ```bash
-gen_conn() { # i startPng endPng          (end-image required → omni/kling3_0 only)
-  agy generate create "$VMODEL" --prompt "$(cat "$WORK/conn_$1.txt")" \
+gen_conn() { # i startPng endPng
+  python3 ./references/omni_video.py --prompt "$(cat "$WORK/conn_$1.txt")" \
     --start-image "$2" --end-image "$3" \
-    $VOPTS --aspect_ratio 16:9 --duration "$CONN_DUR" \
-    --wait --wait-timeout 20m --json > "$WORK/conn_$1.json" 2> "$WORK/conn_$1.err"
-  url=$(jq -r '.[0].result_url // empty' "$WORK/conn_$1.json")
-  [ -n "$url" ] && curl -fsSL "$url" -o "$WORK/conn_$1.mp4" && echo "conn $1 ok" || echo "conn $1 FAIL"
+    --duration "$CONN_DUR" \
+    --output "$WORK/conn_$1.mp4" > "$WORK/conn_$1.log" 2>&1
+  [ -f "$WORK/conn_$1.mp4" ] && echo "conn $1 ok" || echo "conn $1 FAIL"
 }
 set -- $NAMES ; i=0 ; prev=""
 for n in "$@"; do
@@ -196,8 +188,7 @@ Step 1.5 interview.
 
 ## Notes
 
-- `.[0].result_url` is the field on the `--wait --json` job object. `.min_result_url` is
-  a lower-res preview if you ever want it.
+- Ensure you have correctly authenticated your API access for Omni before running the batch.
 - **NSFW fallback across models**: if one clip keeps getting flagged on omni after
   re-rolls + prompt scrubbing, regenerate just that clip on `kling3_0` with the SAME
   start/end frames: `VMODEL=kling3_0; VOPTS="--mode std --sound off"; gen_conn 3 …` —
